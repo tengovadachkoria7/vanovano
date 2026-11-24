@@ -1,0 +1,1894 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>ვანოს ავტო სკოლა — გაკვეთილების ონლაინ გრაფიკი</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Supabase JS v2 SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --navy: #0f172a;
+      --navy-light: #1e293b;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-soft: #eff6ff;
+      --amber: #f59e0b;
+      --amber-soft: #fef3c7;
+      --emerald: #10b981;
+      --emerald-soft: #d1fae5;
+      --rose: #ef4444;
+      --rose-soft: #fee2e2;
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 16px;
+      --radius-sm: 10px;
+      --shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
+      --shadow-lg: 0 14px 36px rgba(15, 23, 42, 0.16);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Noto Sans Georgian', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.45;
+    }
+
+    /* Header */
+    .app-header {
+      background: linear-gradient(135deg, var(--navy) 0%, #1e3a5f 100%);
+      color: #fff;
+      padding: 14px 16px;
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.2);
+      border-bottom: 3px solid var(--amber);
+    }
+
+    .header-inner {
+      max-width: 1040px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      cursor: pointer;
+    }
+
+    .brand-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: var(--amber);
+      color: var(--navy);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 800;
+      flex-shrink: 0;
+      box-shadow: 0 4px 10px rgba(245, 158, 11, 0.35);
+    }
+
+    .brand-text h1 {
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -0.2px;
+      line-height: 1.2;
+    }
+
+    .brand-text span {
+      font-size: 12px;
+      color: #cbd5e1;
+      display: block;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .db-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 11px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .db-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--amber);
+    }
+
+    .db-badge.online .db-dot {
+      background: var(--emerald);
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+    }
+
+    .db-badge.error .db-dot {
+      background: var(--rose);
+    }
+
+    .icon-btn {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 10px;
+      width: 36px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.15s;
+    }
+
+    .icon-btn:hover {
+      background: rgba(255, 255, 255, 0.22);
+    }
+
+    /* Setup Banner */
+    .setup-banner {
+      max-width: 1040px;
+      margin: 14px auto 0;
+      padding: 0 16px;
+    }
+
+    .setup-banner-inner {
+      background: var(--amber-soft);
+      border: 1px solid #fcd34d;
+      color: #78350f;
+      border-radius: 12px;
+      padding: 11px 14px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 18px 16px 40px;
+    }
+
+    /* Breadcrumb / Toolbar */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .page-title {
+      font-size: 21px;
+      font-weight: 800;
+      color: var(--navy);
+    }
+
+    .page-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      border: none;
+      border-radius: 11px;
+      padding: 10px 16px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.28);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: var(--card);
+      color: var(--navy);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+    }
+
+    .btn-danger {
+      background: var(--rose-soft);
+      color: #b91c1c;
+    }
+
+    .btn-danger:hover {
+      background: #fecaca;
+    }
+
+    .btn-success {
+      background: var(--emerald);
+      color: #fff;
+    }
+
+    .btn-sm {
+      padding: 7px 12px;
+      font-size: 13px;
+      border-radius: 9px;
+    }
+
+    /* Year Switcher */
+    .year-switcher {
+      display: inline-flex;
+      align-items: center;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 4px;
+      box-shadow: var(--shadow);
+    }
+
+    .year-switcher button {
+      border: none;
+      background: transparent;
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--navy);
+      cursor: pointer;
+    }
+
+    .year-switcher button:hover {
+      background: var(--bg);
+    }
+
+    .year-switcher span {
+      padding: 0 14px;
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--navy);
+    }
+
+    /* Months Grid */
+    .months-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+      gap: 14px;
+    }
+
+    .month-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .month-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--primary);
+      box-shadow: 0 10px 24px rgba(37, 99, 235, 0.12);
+    }
+
+    .month-card.current-month {
+      border-color: var(--amber);
+      background: linear-gradient(180deg, #fffbeb 0%, #ffffff 48%);
+    }
+
+    .month-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .month-num {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      background: var(--bg);
+      padding: 3px 9px;
+      border-radius: 999px;
+    }
+
+    .month-card.current-month .month-num {
+      background: var(--amber);
+      color: var(--navy);
+    }
+
+    .month-name {
+      font-size: 19px;
+      font-weight: 800;
+      color: var(--navy);
+      margin-bottom: 6px;
+    }
+
+    .month-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid #f1f5f9;
+    }
+
+    .count-pill {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: var(--bg);
+      color: var(--text-muted);
+    }
+
+    .count-pill.has-items {
+      background: var(--primary-soft);
+      color: var(--primary);
+    }
+
+    /* Calendar Grid (Days View) */
+    .calendar-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .weekdays-row {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .weekday-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      padding: 6px 0;
+    }
+
+    .weekday-label.weekend {
+      color: #b45309;
+    }
+
+    .days-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+    }
+
+    .day-cell {
+      min-height: 78px;
+      background: #fff;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 8px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.15s ease;
+    }
+
+    .day-cell:hover {
+      border-color: var(--primary);
+      background: var(--primary-soft);
+      transform: translateY(-2px);
+    }
+
+    .day-cell.empty {
+      background: transparent;
+      border: none;
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .day-cell.today {
+      border-color: var(--amber);
+      background: #fffbeb;
+    }
+
+    .day-cell.has-bookings {
+      border-color: #93c5fd;
+    }
+
+    .day-number {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--navy);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .today-tag {
+      font-size: 10px;
+      font-weight: 700;
+      background: var(--amber);
+      color: var(--navy);
+      padding: 1px 6px;
+      border-radius: 6px;
+    }
+
+    .day-badge {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--primary);
+      background: var(--primary-soft);
+      padding: 3px 6px;
+      border-radius: 7px;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .day-free {
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+    /* Day Schedule (24-Hour Timeline) */
+    .day-nav-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow);
+      flex-wrap: wrap;
+    }
+
+    .day-nav-arrows {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .day-stats {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .stat-chip {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 7px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--navy);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .timeline-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .timeline-hint {
+      background: #f8fafc;
+      border-bottom: 1px solid var(--border);
+      padding: 9px 14px;
+      font-size: 12.5px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .timeline-scroll {
+      max-height: 70vh;
+      overflow-y: auto;
+      position: relative;
+      scroll-behavior: smooth;
+    }
+
+    .timeline-wrapper {
+      display: flex;
+      position: relative;
+      height: 1440px; /* 24 hours * 60px */
+      min-width: 100%;
+    }
+
+    .hours-column {
+      width: 66px;
+      flex-shrink: 0;
+      background: #f8fafc;
+      border-right: 1px solid var(--border);
+      position: relative;
+    }
+
+    .hour-label {
+      height: 60px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .slots-column {
+      flex: 1;
+      position: relative;
+      background: #fff;
+    }
+
+    .hour-slot {
+      height: 60px;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+
+    .hour-slot::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      border-top: 1px dashed #f1f5f9;
+      pointer-events: none;
+    }
+
+    .hour-slot:hover {
+      background: #f8fafc;
+    }
+
+    .hour-slot:hover::before {
+      content: '+ ამ საათზე ჩანიშვნა';
+      position: absolute;
+      right: 12px;
+      top: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--primary);
+      opacity: 0.8;
+    }
+
+    .bookings-layer {
+      position: absolute;
+      top: 0;
+      left: 6px;
+      right: 8px;
+      bottom: 0;
+      pointer-events: none;
+    }
+
+    .booking-block {
+      position: absolute;
+      left: 0;
+      right: 0;
+      border-radius: 10px;
+      padding: 6px 11px;
+      cursor: pointer;
+      pointer-events: auto;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border-left: 4px solid var(--primary);
+      background: #eff6ff;
+      color: var(--navy);
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+      transition: transform 0.12s, box-shadow 0.12s;
+      z-index: 5;
+    }
+
+    .booking-block:hover {
+      transform: scale(1.005);
+      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.14);
+      z-index: 10;
+    }
+
+    .booking-block.status-completed {
+      background: #ecfdf5;
+      border-left-color: var(--emerald);
+    }
+
+    .booking-block.status-cancelled {
+      background: #fef2f2;
+      border-left-color: var(--rose);
+      opacity: 0.72;
+    }
+
+    .booking-block.compact {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      padding: 2px 10px;
+      gap: 8px;
+    }
+
+    .booking-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .booking-name {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--navy);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .booking-time-tag {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary);
+      background: rgba(255, 255, 255, 0.85);
+      padding: 1px 7px;
+      border-radius: 6px;
+      flex-shrink: 0;
+    }
+
+    .status-completed .booking-time-tag { color: #047857; }
+    .status-cancelled .booking-time-tag { color: #b91c1c; text-decoration: line-through; }
+
+    .booking-sub {
+      font-size: 12.5px;
+      color: #475569;
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .now-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--rose);
+      z-index: 15;
+      pointer-events: none;
+    }
+
+    .now-line::before {
+      content: '';
+      position: absolute;
+      left: -5px;
+      top: -4px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--rose);
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.58);
+      backdrop-filter: blur(3px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 100;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--card);
+      border-radius: 18px;
+      width: 100%;
+      max-width: 470px;
+      max-height: 92vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+      animation: popIn 0.16s ease-out;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: translateY(12px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .modal-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-header h3 {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--navy);
+    }
+
+    .close-btn {
+      background: var(--bg);
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      font-size: 18px;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .close-btn:hover {
+      background: #e2e8f0;
+      color: var(--navy);
+    }
+
+    .modal-body {
+      padding: 18px 20px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 6px;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 14.5px;
+      color: var(--navy);
+      background: #fff;
+      transition: border-color 0.15s;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    .alert-box {
+      display: none;
+      background: var(--rose-soft);
+      border: 1px solid #fca5a5;
+      color: #991b1b;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 14px;
+    }
+
+    .alert-box.show {
+      display: block;
+    }
+
+    .modal-footer {
+      padding: 14px 20px 18px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    /* Detail View inside modal */
+    .detail-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+    }
+
+    .detail-item {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 10px 13px;
+    }
+
+    .detail-label {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
+    .detail-value {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--navy);
+    }
+
+    .status-pills {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .status-pill-btn {
+      border: 1.5px solid var(--border);
+      background: #fff;
+      border-radius: 10px;
+      padding: 8px 6px;
+      font-family: inherit;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+
+    .status-pill-btn.active-scheduled {
+      border-color: var(--primary);
+      background: var(--primary-soft);
+      color: var(--primary);
+    }
+
+    .status-pill-btn.active-completed {
+      border-color: var(--emerald);
+      background: var(--emerald-soft);
+      color: #047857;
+    }
+
+    .status-pill-btn.active-cancelled {
+      border-color: var(--rose);
+      background: var(--rose-soft);
+      color: #b91c1c;
+    }
+
+    .quick-contact {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(90px);
+      background: var(--navy);
+      color: #fff;
+      padding: 11px 18px;
+      border-radius: 12px;
+      font-size: 13.5px;
+      font-weight: 600;
+      box-shadow: var(--shadow-lg);
+      z-index: 200;
+      transition: transform 0.22s ease;
+      max-width: 92vw;
+      text-align: center;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 640px) {
+      .months-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+      .month-card {
+        padding: 14px;
+      }
+      .month-name {
+        font-size: 16px;
+      }
+      .days-grid {
+        gap: 5px;
+      }
+      .day-cell {
+        min-height: 64px;
+        padding: 6px;
+      }
+      .day-number {
+        font-size: 14px;
+      }
+      .today-tag {
+        display: none;
+      }
+      .page-title {
+        font-size: 18px;
+      }
+      .hours-column {
+        width: 54px;
+      }
+      .hour-label {
+        font-size: 11px;
+      }
+      .hour-slot:hover::before {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand" onclick="goHome()">
+        <div class="brand-icon">🚗</div>
+        <div class="brand-text">
+          <h1>ვანოს ავტო სკოლა</h1>
+          <span>პრაქტიკული გაკვეთილების ონლაინ გრაფიკი</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <div id="dbBadge" class="db-badge" title="მონაცემთა ბაზის სტატუსი">
+          <span class="db-dot"></span>
+          <span id="dbBadgeText">კავშირი...</span>
+        </div>
+        <button class="icon-btn" onclick="manualRefresh()" title="განახლება">↻</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Setup Warning Banner (shown only if Supabase keys are not pasted yet) -->
+  <div id="setupBanner" class="setup-banner" style="display:none;">
+    <div class="setup-banner-inner">
+      <div>
+        <strong>⚠️ ლოკალური რეჟიმი:</strong> ჩანაწერები ინახება მხოლოდ ამ მოწყობილობაში. ყველა მძღოლის ტელეფონზე სინქრონიზაციისთვის <code>index.html</code>-ში ჩასვით თქვენი <strong>Supabase URL</strong> და <strong>ANON KEY</strong>.
+      </div>
+    </div>
+  </div>
+
+  <!-- Dynamic Main View -->
+  <main class="container" id="app"></main>
+
+  <!-- Create / Edit Booking Modal -->
+  <div class="modal-backdrop" id="bookingModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="bookingModalTitle">ახალი გაკვეთილის ჩანიშვნა</h3>
+        <button class="close-btn" onclick="closeBookingModal()">✕</button>
+      </div>
+      <form id="bookingForm" onsubmit="handleBookingSubmit(event)">
+        <div class="modal-body">
+          <div id="bookingAlert" class="alert-box"></div>
+
+          <div class="form-group">
+            <label>არჩეული თარიღი</label>
+            <input type="text" id="formDateLabel" class="form-control" readonly style="background:#f8fafc;font-weight:700;" />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="startTime">დაწყების დრო (საიდან) *</label>
+              <select id="startTime" class="form-control" required onchange="autoAdjustEndTime()"></select>
+            </div>
+            <div class="form-group">
+              <label for="endTime">დამთავრების დრო (სადამდე) *</label>
+              <select id="endTime" class="form-control" required></select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="studentName">მოსწავლის სახელი და გვარი *</label>
+            <input type="text" id="studentName" class="form-control" placeholder="მაგ: გიორგი ბერიძე" required />
+          </div>
+
+          <div class="form-group">
+            <label for="studentPhone">ტელეფონის ნომერი *</label>
+            <input type="tel" id="studentPhone" class="form-control" placeholder="მაგ: 599 12 34 56" required />
+          </div>
+
+          <div class="form-group">
+            <label for="instructorName">ინსტრუქტორი / მანქანა (არასავალდებულო)</label>
+            <input type="text" id="instructorName" class="form-control" placeholder="მაგ: ვანო / ავტომატიკა" />
+          </div>
+
+          <div class="form-group" style="margin-bottom:0;">
+            <label for="bookingNote">შენიშვნა (არასავალდებულო)</label>
+            <input type="text" id="bookingNote" class="form-control" placeholder="მაგ: მოედანი, ქალაქი, გამოცდისთვის მზადება..." />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeBookingModal()">გაუქმება</button>
+          <button type="submit" id="saveBookingBtn" class="btn btn-primary">✓ ჩანიშვნა</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Booking Detail Modal -->
+  <div class="modal-backdrop" id="detailModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>ჩანაწერის დეტალები</h3>
+        <button class="close-btn" onclick="closeDetailModal()">✕</button>
+      </div>
+      <div class="modal-body" id="detailBody"></div>
+      <div class="modal-footer" style="justify-content: space-between;">
+        <button type="button" class="btn btn-danger btn-sm" id="deleteBtn">🗑 წაშლა</button>
+        <div style="display:flex;gap:8px;">
+          <button type="button" class="btn btn-secondary btn-sm" id="editBtn">✎ შეცვლა</button>
+          <button type="button" class="btn btn-primary btn-sm" onclick="closeDetailModal()">დახურვა</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast"></div>
+
+  <script>
+    // =========================================================================
+    // 1. SUPABASE-ის კონფიგურაცია
+    //    ჩასვით თქვენი Project URL და anon/publishable გასაღები ქვემოთ:
+    // =========================================================================
+    const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+    // =========================================================================
+
+    const LOCAL_STORAGE_KEY = 'vanos_avto_skola_bookings_v2';
+
+    const MONTHS_KA = [
+      'იანვარი', 'თებერვალი', 'მარტი', 'აპრილი',
+      'მაისი', 'ივნისი', 'ივლისი', 'აგვისტო',
+      'სექტემბერი', 'ოქტომბერი', 'ნოემბერი', 'დეკემბერი'
+    ];
+
+    const WEEKDAYS_SHORT = ['ორშ', 'სამ', 'ოთხ', 'ხუთ', 'პარ', 'შაბ', 'კვი'];
+    const WEEKDAYS_FULL = ['კვირა', 'ორშაბათი', 'სამშაბათი', 'ოთხშაბათი', 'ხუთშაბათი', 'პარასკევი', 'შაბათი'];
+
+    const STATUS_LABELS = {
+      scheduled: 'დაგეგმილი',
+      completed: 'ჩატარდა ✓',
+      cancelled: 'გაუქმდა ✕'
+    };
+
+    const today = new Date();
+    const state = {
+      view: 'months', // 'months' | 'days' | 'day'
+      year: today.getFullYear(),
+      month: today.getMonth(), // 0-11
+      day: today.getDate(),
+      bookings: [],
+      editingId: null,
+      usingSupabase: false,
+      supabase: null,
+      realtimeChannel: null,
+      isLoading: false
+    };
+
+    // Helpers
+    function pad(n) {
+      return String(n).padStart(2, '0');
+    }
+
+    function formatDateKey(y, m, d) {
+      return `${y}-${pad(m + 1)}-${pad(d)}`;
+    }
+
+    function getDaysInMonth(y, m) {
+      return new Date(y, m + 1, 0).getDate();
+    }
+
+    function timeToMinutes(t) {
+      const [h, m] = t.split(':').map(Number);
+      return h * 60 + m;
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function showToast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      clearTimeout(el._timer);
+      el._timer = setTimeout(() => el.classList.remove('show'), 2800);
+    }
+
+    function updateDbBadge(mode, text) {
+      const badge = document.getElementById('dbBadge');
+      const label = document.getElementById('dbBadgeText');
+      badge.className = 'db-badge ' + mode;
+      label.textContent = text;
+    }
+
+    // Generate 15-min time options
+    function populateTimeSelects() {
+      const startSel = document.getElementById('startTime');
+      const endSel = document.getElementById('endTime');
+      let startOpts = '';
+      let endOpts = '';
+
+      for (let mins = 0; mins < 24 * 60; mins += 15) {
+        const label = `${pad(Math.floor(mins / 60))}:${pad(mins % 60)}`;
+        startOpts += `<option value="${label}">${label}</option>`;
+      }
+      for (let mins = 15; mins <= 24 * 60; mins += 15) {
+        const label = mins === 1440 ? '24:00' : `${pad(Math.floor(mins / 60))}:${pad(mins % 60)}`;
+        endOpts += `<option value="${label}">${label}</option>`;
+      }
+
+      startSel.innerHTML = startOpts;
+      endSel.innerHTML = endOpts;
+    }
+
+    function autoAdjustEndTime() {
+      const startVal = document.getElementById('startTime').value;
+      const endSel = document.getElementById('endTime');
+      const startMin = timeToMinutes(startVal);
+      const endMin = timeToMinutes(endSel.value);
+      if (endMin <= startMin) {
+        const nextMin = Math.min(startMin + 60, 1440);
+        endSel.value = nextMin === 1440 ? '24:00' : `${pad(Math.floor(nextMin / 60))}:${pad(nextMin % 60)}`;
+      }
+    }
+
+    // =========================================================================
+    // Database Layer (Supabase + Realtime + LocalStorage Fallback)
+    // =========================================================================
+    function isSupabaseConfigured() {
+      return (
+        SUPABASE_URL &&
+        SUPABASE_ANON_KEY &&
+        !SUPABASE_URL.includes('YOUR_SUPABASE_URL') &&
+        !SUPABASE_ANON_KEY.includes('YOUR_SUPABASE_ANON_KEY') &&
+        SUPABASE_URL.startsWith('http')
+      );
+    }
+
+    async function initDatabase() {
+      if (isSupabaseConfigured() && window.supabase) {
+        try {
+          state.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+          state.usingSupabase = true;
+          updateDbBadge('online', 'ონლაინ ბაზა');
+          document.getElementById('setupBanner').style.display = 'none';
+          await loadBookings();
+          subscribeRealtime();
+          return;
+        } catch (err) {
+          console.error('Supabase init error:', err);
+          updateDbBadge('error', 'ბაზის შეცდომა');
+        }
+      }
+
+      // Fallback: LocalStorage
+      state.usingSupabase = false;
+      updateDbBadge('', 'ლოკალური რეჟიმი');
+      document.getElementById('setupBanner').style.display = 'block';
+      await loadBookings();
+    }
+
+    async function loadBookings() {
+      state.isLoading = true;
+      if (state.usingSupabase) {
+        const { data, error } = await state.supabase
+          .from('bookings')
+          .select('*')
+          .order('date', { ascending: true })
+          .order('start_time', { ascending: true });
+
+        if (error) {
+          console.error('Load error:', error);
+          updateDbBadge('error', 'კავშირის შეცდომა');
+          showToast('ბაზიდან წაკითხვის შეცდომა: ' + error.message);
+        } else {
+          state.bookings = data || [];
+          updateDbBadge('online', 'ონლაინ ბაზა');
+        }
+      } else {
+        try {
+          const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
+          state.bookings = raw ? JSON.parse(raw) : [];
+        } catch {
+          state.bookings = [];
+        }
+      }
+      state.isLoading = false;
+      render();
+    }
+
+    function saveLocalBookings() {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state.bookings));
+    }
+
+    function subscribeRealtime() {
+      if (!state.usingSupabase || !state.supabase) return;
+      if (state.realtimeChannel) {
+        state.supabase.removeChannel(state.realtimeChannel);
+      }
+
+      state.realtimeChannel = state.supabase
+        .channel('public:bookings')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'bookings' },
+          (payload) => {
+            if (payload.eventType === 'INSERT') {
+              const idx = state.bookings.findIndex(b => b.id === payload.new.id);
+              if (idx === -1) state.bookings.push(payload.new);
+              else state.bookings[idx] = payload.new;
+            } else if (payload.eventType === 'UPDATE') {
+              const idx = state.bookings.findIndex(b => b.id === payload.new.id);
+              if (idx !== -1) state.bookings[idx] = payload.new;
+              else state.bookings.push(payload.new);
+            } else if (payload.eventType === 'DELETE') {
+              state.bookings = state.bookings.filter(b => b.id !== payload.old.id);
+            }
+            render();
+          }
+        )
+        .subscribe();
+    }
+
+    async function manualRefresh() {
+      await loadBookings();
+      showToast('გრაფიკი განახლდა');
+    }
+
+    async function dbCreateBooking(record) {
+      if (state.usingSupabase) {
+        const { data, error } = await state.supabase
+          .from('bookings')
+          .insert([record])
+          .select()
+          .single();
+
+        if (error) throw error;
+        const exists = state.bookings.some(b => b.id === data.id);
+        if (!exists) state.bookings.push(data);
+        return data;
+      } else {
+        const localRecord = {
+          ...record,
+          id: 'loc_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+          created_at: new Date().toISOString()
+        };
+        state.bookings.push(localRecord);
+        saveLocalBookings();
+        return localRecord;
+      }
+    }
+
+    async function dbUpdateBooking(id, patch) {
+      if (state.usingSupabase) {
+        const { data, error } = await state.supabase
+          .from('bookings')
+          .update(patch)
+          .eq('id', id)
+          .select()
+          .single();
+
+        if (error) throw error;
+        const idx = state.bookings.findIndex(b => b.id === id);
+        if (idx !== -1) state.bookings[idx] = data;
+        return data;
+      } else {
+        const idx = state.bookings.findIndex(b => b.id === id);
+        if (idx !== -1) {
+          state.bookings[idx] = { ...state.bookings[idx], ...patch };
+          saveLocalBookings();
+          return state.bookings[idx];
+        }
+      }
+    }
+
+    async function dbDeleteBooking(id) {
+      if (state.usingSupabase) {
+        const { error } = await state.supabase
+          .from('bookings')
+          .delete()
+          .eq('id', id);
+
+        if (error) throw error;
+        state.bookings = state.bookings.filter(b => b.id !== id);
+      } else {
+        state.bookings = state.bookings.filter(b => b.id !== id);
+        saveLocalBookings();
+      }
+    }
+
+    // =========================================================================
+    // Navigation
+    // =========================================================================
+    function goHome() {
+      state.view = 'months';
+      render();
+    }
+
+    function changeYear(delta) {
+      state.year += delta;
+      render();
+    }
+
+    function openMonth(monthIdx) {
+      state.month = monthIdx;
+      state.view = 'days';
+      render();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function openDay(dayNum) {
+      state.day = dayNum;
+      state.view = 'day';
+      render();
+      // Scroll timeline nicely to 08:00 (480px)
+      setTimeout(() => {
+        const scroller = document.getElementById('timelineScroll');
+        if (scroller) scroller.scrollTop = 460;
+      }, 30);
+    }
+
+    function stepDay(delta) {
+      const dt = new Date(state.year, state.month, state.day + delta);
+      state.year = dt.getFullYear();
+      state.month = dt.getMonth();
+      state.day = dt.getDate();
+      render();
+    }
+
+    // =========================================================================
+    // Rendering Views
+    // =========================================================================
+    function render() {
+      const app = document.getElementById('app');
+      if (state.view === 'months') {
+        app.innerHTML = renderMonthsView();
+      } else if (state.view === 'days') {
+        app.innerHTML = renderDaysView();
+      } else {
+        app.innerHTML = renderDayScheduleView();
+      }
+    }
+
+    function renderMonthsView() {
+      const currentY = today.getFullYear();
+      const currentM = today.getMonth();
+
+      let cardsHtml = '';
+      for (let m = 0; m < 12; m++) {
+        const prefix = `${state.year}-${pad(m + 1)}-`;
+        const activeBookings = state.bookings.filter(
+          b => b.date && b.date.startsWith(prefix) && b.status !== 'cancelled'
+        );
+        const daysCount = getDaysInMonth(state.year, m);
+        const isCurrent = state.year === currentY && m === currentM;
+
+        cardsHtml += `
+          <div class="month-card ${isCurrent ? 'current-month' : ''}" onclick="openMonth(${m})">
+            <div class="month-top">
+              <span class="month-num">${isCurrent ? 'მიმდინარე თვე' : `${pad(m + 1)} / ${state.year}`}</span>
+              <span style="font-size:18px;color:#94a3b8;">›</span>
+            </div>
+            <div class="month-name">${MONTHS_KA[m]}</div>
+            <div class="month-meta">
+              <span>${daysCount} დღე</span>
+              <span class="count-pill ${activeBookings.length > 0 ? 'has-items' : ''}">
+                ${activeBookings.length} გაკვეთილი
+              </span>
+            </div>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="toolbar">
+          <div>
+            <div class="page-title">აირჩიეთ თვე</div>
+            <div class="page-subtitle">დააჭირეთ სასურველ თვეს რიცხვებისა და საათების სანახავად</div>
+          </div>
+          <div class="year-switcher">
+            <button onclick="changeYear(-1)" title="წინა წელი">‹</button>
+            <span>${state.year}</span>
+            <button onclick="changeYear(1)" title="შემდეგი წელი">›</button>
+          </div>
+        </div>
+        <div class="months-grid">${cardsHtml}</div>
+      `;
+    }
+
+    function renderDaysView() {
+      const daysCount = getDaysInMonth(state.year, state.month);
+      // JS getDay(): 0=Sun..6=Sat -> convert to Mon=0..Sun=6
+      const firstDayJs = new Date(state.year, state.month, 1).getDay();
+      const leadingEmpties = firstDayJs === 0 ? 6 : firstDayJs - 1;
+
+      const todayKey = formatDateKey(today.getFullYear(), today.getMonth(), today.getDate());
+
+      let cellsHtml = '';
+      for (let i = 0; i < leadingEmpties; i++) {
+        cellsHtml += `<div class="day-cell empty"></div>`;
+      }
+
+      for (let d = 1; d <= daysCount; d++) {
+        const key = formatDateKey(state.year, state.month, d);
+        const dayBookings = state.bookings.filter(b => b.date === key && b.status !== 'cancelled');
+        const isToday = key === todayKey;
+
+        cellsHtml += `
+          <div class="day-cell ${isToday ? 'today' : ''} ${dayBookings.length > 0 ? 'has-bookings' : ''}" onclick="openDay(${d})">
+            <div class="day-number">
+              <span>${d}</span>
+              ${isToday ? '<span class="today-tag">დღეს</span>' : ''}
+            </div>
+            ${
+              dayBookings.length > 0
+                ? `<div class="day-badge">${dayBookings.length} ჩაწერილი</div>`
+                : `<div class="day-free">თავისუფალი</div>`
+            }
+          </div>
+        `;
+      }
+
+      return `
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <button class="btn btn-secondary btn-sm" onclick="goHome()">← თვეები</button>
+            <div>
+              <div class="page-title">${MONTHS_KA[state.month]} ${state.year}</div>
+              <div class="page-subtitle">აირჩიეთ რიცხვი (${daysCount} დღე) 24-საათიან გრაფიკზე გადასასვლელად</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="calendar-card">
+          <div class="weekdays-row">
+            ${WEEKDAYS_SHORT.map((w, idx) => `<div class="weekday-label ${idx >= 5 ? 'weekend' : ''}">${w}</div>`).join('')}
+          </div>
+          <div class="days-grid">
+            ${cellsHtml}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderDayScheduleView() {
+      const dateKey = formatDateKey(state.year, state.month, state.day);
+      const dtObj = new Date(state.year, state.month, state.day);
+      const weekdayName = WEEKDAYS_FULL[dtObj.getDay()];
+
+      const dayBookings = state.bookings
+        .filter(b => b.date === dateKey)
+        .sort((a, b) => timeToMinutes(a.start_time) - timeToMinutes(b.start_time));
+
+      const activeCount = dayBookings.filter(b => b.status !== 'cancelled').length;
+      const completedCount = dayBookings.filter(b => b.status === 'completed').length;
+
+      // Hours labels & clickable slots (00:00 - 23:00)
+      let hoursColHtml = '';
+      let slotsHtml = '';
+      for (let h = 0; h < 24; h++) {
+        const label = `${pad(h)}:00`;
+        hoursColHtml += `<div class="hour-label">${label}</div>`;
+        slotsHtml += `<div class="hour-slot" onclick="openBookingModal('${label}')"></div>`;
+      }
+
+      // Booking visual blocks
+      let blocksHtml = '';
+      for (const b of dayBookings) {
+        const startMin = timeToMinutes(b.start_time);
+        const endMin = timeToMinutes(b.end_time);
+        const duration = Math.max(endMin - startMin, 20);
+        const isCompact = duration < 42;
+        const statusCls = b.status === 'completed' ? 'status-completed' : (b.status === 'cancelled' ? 'status-cancelled' : '');
+
+        blocksHtml += `
+          <div
+            class="booking-block ${statusCls} ${isCompact ? 'compact' : ''}"
+            style="top:${startMin + 1}px; height:${duration - 2}px;"
+            onclick="openDetailModal('${escapeHtml(b.id)}')"
+          >
+            <div class="booking-head">
+              <span class="booking-name">${escapeHtml(b.student_name)}</span>
+              <span class="booking-time-tag">${escapeHtml(b.start_time)} – ${escapeHtml(b.end_time)}</span>
+            </div>
+            ${
+              !isCompact
+                ? `<div class="booking-sub">
+                    <span>📞 ${escapeHtml(b.phone)}</span>
+                    ${b.instructor ? `<span>🚘 ${escapeHtml(b.instructor)}</span>` : ''}
+                    ${b.note ? `<span>📝 ${escapeHtml(b.note)}</span>` : ''}
+                  </div>`
+                : `<span style="font-size:12px;color:#475569;flex-shrink:0;">📞 ${escapeHtml(b.phone)}</span>`
+            }
+          </div>
+        `;
+      }
+
+      // Current time indicator if today
+      let nowLineHtml = '';
+      const todayKey = formatDateKey(today.getFullYear(), today.getMonth(), today.getDate());
+      if (dateKey === todayKey) {
+        const now = new Date();
+        const nowMin = now.getHours() * 60 + now.getMinutes();
+        nowLineHtml = `<div class="now-line" style="top:${nowMin}px;"></div>`;
+      }
+
+      return `
+        <div class="day-nav-bar">
+          <div class="toolbar-left">
+            <button class="btn btn-secondary btn-sm" onclick="openMonth(${state.month})">← კალენდარი</button>
+            <div class="day-nav-arrows">
+              <button class="btn btn-secondary btn-sm" onclick="stepDay(-1)" title="წინა დღე">‹</button>
+              <div>
+                <div class="page-title" style="font-size:17px;">${state.day} ${MONTHS_KA[state.month]}, ${state.year}</div>
+                <div class="page-subtitle">${weekdayName}</div>
+              </div>
+              <button class="btn btn-secondary btn-sm" onclick="stepDay(1)" title="შემდეგი დღე">›</button>
+            </div>
+          </div>
+
+          <button class="btn btn-primary" onclick="openBookingModal()">+ ჩანიშვნა</button>
+        </div>
+
+        <div class="day-stats">
+          <div class="stat-chip">📅 დაკავებული: <strong>${activeCount}</strong></div>
+          <div class="stat-chip">✅ ჩატარდა: <strong>${completedCount}</strong></div>
+          <div class="stat-chip">⏰ სრული 24-საათიანი გრაფიკი (00:00 – 24:00)</div>
+        </div>
+
+        <div class="timeline-card">
+          <div class="timeline-hint">
+            <span>💡 ჩასაწერად დააჭირეთ ღილაკს <strong>„+ ჩანიშვნა“</strong> ან პირდაპირ სასურველ თავისუფალ საათს</span>
+            <span>დეტალებისთვის დააჭირეთ დაკავებულ ბლოკს</span>
+          </div>
+          <div class="timeline-scroll" id="timelineScroll">
+            <div class="timeline-wrapper">
+              <div class="hours-column">${hoursColHtml}</div>
+              <div class="slots-column">
+                ${slotsHtml}
+                ${nowLineHtml}
+                <div class="bookings-layer">${blocksHtml}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // Booking Modal (Create / Edit)
+    // =========================================================================
+    function openBookingModal(prefillStart = null, editBooking = null) {
+      const alertBox = document.getElementById('bookingAlert');
+      alertBox.classList.remove('show');
+      alertBox.textContent = '';
+
+      const dateLabel = `${state.day} ${MONTHS_KA[state.month]}, ${state.year}`;
+      document.getElementById('formDateLabel').value = dateLabel;
+
+      if (editBooking) {
+        state.editingId = editBooking.id;
+        document.getElementById('bookingModalTitle').textContent = 'ჩანაწერის რედაქტირება';
+        document.getElementById('saveBookingBtn').textContent = '✓ შენახვა';
+        document.getElementById('startTime').value = editBooking.start_time;
+        document.getElementById('endTime').value = editBooking.end_time;
+        document.getElementById('studentName').value = editBooking.student_name || '';
+        document.getElementById('studentPhone').value = editBooking.phone || '';
+        document.getElementById('instructorName').value = editBooking.instructor || '';
+        document.getElementById('bookingNote').value = editBooking.note || '';
+      } else {
+        state.editingId = null;
+        document.getElementById('bookingModalTitle').textContent = 'ახალი გაკვეთილის ჩანიშვნა';
+        document.getElementById('saveBookingBtn').textContent = '✓ ჩანიშვნა';
+        document.getElementById('bookingForm').reset();
+        document.getElementById('formDateLabel').value = dateLabel;
+
+        const startVal = prefillStart || '10:00';
+        document.getElementById('startTime').value = startVal;
+        const startMin = timeToMinutes(startVal);
+        const endMin = Math.min(startMin + 60, 1440);
+        document.getElementById('endTime').value = endMin === 1440 ? '24:00' : `${pad(Math.floor(endMin / 60))}:${pad(endMin % 60)}`;
+      }
+
+      document.getElementById('bookingModal').classList.add('open');
+      setTimeout(() => document.getElementById('studentName').focus(), 100);
+    }
+
+    function closeBookingModal() {
+      document.getElementById('bookingModal').classList.remove('open');
+      state.editingId = null;
+    }
+
+    function showFormAlert(msg) {
+      const box = document.getElementById('bookingAlert');
+      box.textContent = msg;
+      box.classList.add('show');
+    }
+
+    async function handleBookingSubmit(e) {
+      e.preventDefault();
+      const dateKey = formatDateKey(state.year, state.month, state.day);
+      const startTime = document.getElementById('startTime').value;
+      const endTime = document.getElementById('endTime').value;
+      const studentName = document.getElementById('studentName').value.trim();
+      const studentPhone = document.getElementById('studentPhone').value.trim();
+      const instructor = document.getElementById('instructorName').value.trim();
+      const note = document.getElementById('bookingNote').value.trim();
+
+      const startMin = timeToMinutes(startTime);
+      const endMin = timeToMinutes(endTime);
+
+      if (endMin <= startMin) {
+        showFormAlert('დამთავრების დრო დაწყების დროზე გვიან უნდა იყოს.');
+        return;
+      }
+
+      if (!studentName || !studentPhone) {
+        showFormAlert('შეიყვანეთ მოსწავლის სახელი/გვარი და ტელეფონის ნომერი.');
+        return;
+      }
+
+      // Check time overlap on same day (excluding cancelled & currently edited record)
+      const conflict = state.bookings.find(b => {
+        if (b.date !== dateKey) return false;
+        if (b.status === 'cancelled') return false;
+        if (state.editingId && b.id === state.editingId) return false;
+        const bStart = timeToMinutes(b.start_time);
+        const bEnd = timeToMinutes(b.end_time);
+        return startMin < bEnd && endMin > bStart;
+      });
+
+      if (conflict) {
+        showFormAlert(
+          `ეს დრო უკვე დაკავებულია! (${conflict.start_time} – ${conflict.end_time}: ${conflict.student_name})`
+        );
+        return;
+      }
+
+      const saveBtn = document.getElementById('saveBookingBtn');
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'ინახება...';
+
+      try {
+        const payload = {
+          date: dateKey,
+          start_time: startTime,
+          end_time: endTime,
+          student_name: studentName,
+          phone: studentPhone,
+          instructor: instructor || null,
+          note: note || null
+        };
+
+        if (state.editingId) {
+          await dbUpdateBooking(state.editingId, payload);
+          showToast('ჩანაწერი განახლდა ✓');
+        } else {
+          payload.status = 'scheduled';
+          await dbCreateBooking(payload);
+          showToast('მოსწავლე წარმატებით ჩაინიშნა ✓');
+        }
+
+        closeBookingModal();
+        render();
+      } catch (err) {
+        console.error('Save failed:', err);
+        showFormAlert('შენახვის შეცდომა: ' + (err.message || 'სცადეთ თავიდან'));
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = state.editingId ? '✓ შენახვა' : '✓ ჩანიშვნა';
+      }
+    }
+
+    // =========================================================================
+    // Detail Modal
+    // =========================================================================
+    function openDetailModal(id) {
+      const b = state.bookings.find(item => item.id === id);
+      if (!b) return;
+
+      const cleanPhone = (b.phone || '').replace(/[^\d+]/g, '');
+      const waPhone = cleanPhone.startsWith('5') && cleanPhone.length === 9 ? '995' + cleanPhone : cleanPhone.replace('+', '');
+
+      const body = document.getElementById('detailBody');
+      body.innerHTML = `
+        <div class="detail-grid">
+          <div class="detail-item">
+            <div class="detail-label">მოსწავლე</div>
+            <div class="detail-value">${escapeHtml(b.student_name)}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">დრო და თარიღი</div>
+            <div class="detail-value">⏰ ${escapeHtml(b.start_time)} – ${escapeHtml(b.end_time)} &nbsp;•&nbsp; 📅 ${escapeHtml(b.date)}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">ტელეფონის ნომერი</div>
+            <div class="detail-value">📞 ${escapeHtml(b.phone)}</div>
+          </div>
+          ${b.instructor ? `
+            <div class="detail-item">
+              <div class="detail-label">ინსტრუქტორი / მანქანა</div>
+              <div class="detail-value">🚘 ${escapeHtml(b.instructor)}</div>
+            </div>
+          ` : ''}
+          ${b.note ? `
+            <div class="detail-item">
+              <div class="detail-label">შენიშვნა</div>
+              <div class="detail-value" style="font-weight:500;">${escapeHtml(b.note)}</div>
+            </div>
+          ` : ''}
+
+          <div class="detail-item">
+            <div class="detail-label">სტატუსის შეცვლა</div>
+            <div class="status-pills">
+              <button class="status-pill-btn ${b.status === 'scheduled' ? 'active-scheduled' : ''}" onclick="setBookingStatus('${escapeHtml(b.id)}', 'scheduled')">დაგეგმილი</button>
+              <button class="status-pill-btn ${b.status === 'completed' ? 'active-completed' : ''}" onclick="setBookingStatus('${escapeHtml(b.id)}', 'completed')">ჩატარდა ✓</button>
+              <button class="status-pill-btn ${b.status === 'cancelled' ? 'active-cancelled' : ''}" onclick="setBookingStatus('${escapeHtml(b.id)}', 'cancelled')">გაუქმდა ✕</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="quick-contact">
+          <a href="tel:${escapeHtml(cleanPhone)}" class="btn btn-secondary btn-sm">📞 დარეკვა</a>
+          <a href="https://wa.me/${escapeHtml(waPhone)}" target="_blank" rel="noopener" class="btn btn-success btn-sm">💬 WhatsApp</a>
+        </div>
+      `;
+
+      document.getElementById('editBtn').onclick = () => {
+        closeDetailModal();
+        openBookingModal(null, b);
+      };
+
+      document.getElementById('deleteBtn').onclick = async () => {
+        if (!confirm(`ნამდვილად გსურთ "${b.student_name}"-ის ჩანაწერის წაშლა?`)) return;
+        try {
+          await dbDeleteBooking(b.id);
+          closeDetailModal();
+          render();
+          showToast('ჩანაწერი წაიშალა');
+        } catch (err) {
+          showToast('წაშლის შეცდომა: ' + err.message);
+        }
+      };
+
+      document.getElementById('detailModal').classList.add('open');
+    }
+
+    function closeDetailModal() {
+      document.getElementById('detailModal').classList.remove('open');
+    }
+
+    async function setBookingStatus(id, newStatus) {
+      try {
+        await dbUpdateBooking(id, { status: newStatus });
+        openDetailModal(id);
+        render();
+        showToast('სტატუსი განახლდა: ' + STATUS_LABELS[newStatus]);
+      } catch (err) {
+        showToast('შეცდომა: ' + err.message);
+      }
+    }
+
+    // Close modals on backdrop click or Esc
+    document.getElementById('bookingModal').addEventListener('click', (e) => {
+      if (e.target.id === 'bookingModal') closeBookingModal();
+    });
+    document.getElementById('detailModal').addEventListener('click', (e) => {
+      if (e.target.id === 'detailModal') closeDetailModal();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeBookingModal();
+        closeDetailModal();
+      }
+    });
+
+    // Boot
+    populateTimeSelects();
+    initDatabase();
+  </script>
+</body>
+</html>
